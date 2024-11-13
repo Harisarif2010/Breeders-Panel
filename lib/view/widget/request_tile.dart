@@ -34,7 +34,7 @@ class AcceptRejectListTile extends StatelessWidget {
           children: [
             CustomButton(
               height: 8.h,
-              width: 10.w,
+              width: 7.w,
               textStyle: TextStyle(fontSize: 3.sp, color: AppColors.white),
               text: "Accept",
               onTap: onAccept,
@@ -43,7 +43,7 @@ class AcceptRejectListTile extends StatelessWidget {
             CustomButton(
               color: AppColors.red,
               height: 8.h,
-              width: 10.w,
+              width: 7.w,
               textStyle: TextStyle(fontSize: 3.sp, color: AppColors.white),
               text: "Reject",
               onTap: onReject,
