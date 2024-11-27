@@ -4,11 +4,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_application_breedersweb/constants/colors.dart';
 import 'package:flutter_application_breedersweb/constants/images.dart';
 import 'package:flutter_application_breedersweb/navigator.dart';
+import 'package:flutter_application_breedersweb/provider/auth_provider.dart';
+import 'package:flutter_application_breedersweb/provider/splash_provider.dart';
 import 'package:flutter_application_breedersweb/view/auth/forgot.dart';
 import 'package:flutter_application_breedersweb/view/auth/login.dart';
 import 'package:flutter_application_breedersweb/view/home.dart';
 import 'package:flutter_application_breedersweb/view/widget/custom_button.dart';
 import 'package:flutter_application_breedersweb/view/widget/textfield.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -20,6 +23,9 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   bool obsecurePassword = true;
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   
   @override
   Widget build(BuildContext context) {
@@ -43,25 +49,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       )
                     ),
                     SizedBox(height: 4.h),
-                    Text(
-                      'Username',
-                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        fontSize: 4.sp,
-                      )
-                    ),
-                    const CustomTextField(
-                      name: 'username',
-                      hintText: '@username',
-                      fillColor: AppColors.white, enableBorder: true,
-                    ),
-                    SizedBox(height: 3.h),
+                    // Text(
+                    //   'Username',
+                    //   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    //     fontSize: 4.sp,
+                    //   )
+                    // ),
+                    // CustomTextField(
+                    //   controller: _usernameController,
+                    //   name: 'username',
+                    //   hintText: '@username',
+                    //   fillColor: AppColors.white, enableBorder: true,
+                    // ),
+                  //  SizedBox(height: 3.h),
                     Text(
                       'Email Address',
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                         fontSize: 4.sp,
                       )
                     ),
-                    const CustomTextField(
+                    CustomTextField(
+                      controller: _emailController,
                       name: 'email',
                       hintText: 'Your email',
                       fillColor: AppColors.white, enableBorder: true,
@@ -74,6 +82,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       )
                     ),
                     CustomTextField(
+                      controller: _passwordController,
                       name: 'password',
                       hintText: '*******',
                       obscureText: obsecurePassword,
@@ -99,6 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       )
                     ),
                     CustomTextField(
+                      controller: _confirmPasswordController,
                       enableBorder: true,
                       name: 'Confirm Password',
                       hintText: '******',
@@ -133,16 +143,53 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     SizedBox(height: 3.h),
-                    Center(
-                      child: CustomButton(
-                        height: 8.h,
-                        width: 10.w,
-                        text: 'Register',textStyle: TextStyle(fontSize: 3.sp,color: AppColors.white),
-                        onTap: () {
-                         AppCustomNavigator.replace(context, Home());
-                        },
-                      ),
-                    ),
+                        Center(
+                          child: Consumer<LoadingProvider>(
+                                            builder: (context, loadingProvider, child) {
+                                              return Column(
+                                                children: [
+                          CustomButton(
+                               height: 8.h,
+                          width: 10.w,
+                          text: 'Register',textStyle: TextStyle(fontSize: 3.sp,color: AppColors.white),
+                            onTap: () async {
+                              if (_passwordController.text != _confirmPasswordController.text) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text('Passwords do not match')),
+                                );
+                                return;
+                              }
+                          
+                              final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                              final loadingProvider = Provider.of<LoadingProvider>(context, listen: false);
+                              loadingProvider.setLoading(true);
+                              try {
+                                await authProvider.registerWithEmailAndPassword(
+                                  context,
+                                  _emailController.text,
+                                  _passwordController.text,
+                                );
+                          
+                                if (authProvider.user != null) {
+                                  AppCustomNavigator.replace(context, Home());
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Registration failed: $e')),
+                                );
+                              } finally {
+                                loadingProvider.setLoading(false);
+                              }
+                            },
+                          ),
+                          if (loadingProvider.isLoading)
+                            const CircularProgressIndicator(),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                        ),
+                   
                     SizedBox(height: 3.h),
                     Row(
                       children: [
@@ -171,22 +218,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     SizedBox(height: 2.h),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Container(
-                          width: 7.w,
-                          child: Image.asset(AppImages.facebook),
-                        ),
-                        Container(
-                          width: 7.w,
-                          child: Image.asset(AppImages.google),
-                        ),
-                        Container(
-                          width: 7.w,
-                          child: Image.asset(AppImages.apple),
-                        ),
-                      ],
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                                      SizedBox(
+                      width: 7.w,
+                      child: GestureDetector(
+                        onTap: () async {
+                          final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                          final loadingProvider = Provider.of<LoadingProvider>(context, listen: false);
+                          loadingProvider.setLoading(true);
+                          try {
+                            await authProvider.signInWithGoogle(context);
+                            if (authProvider.user != null) {
+                              AppCustomNavigator.replace(context, const Home());
+                            }
+                          } finally {
+                            loadingProvider.setLoading(false);
+                          }
+                        },
+                        child: Image.asset(AppImages.google),
+                      ),
                     ),
+                    ],
+                  ),
+                
                       SizedBox(height: 2.h),
                      Align(
                       alignment: Alignment.bottomCenter,

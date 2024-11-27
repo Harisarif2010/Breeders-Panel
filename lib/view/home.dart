@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_application_breedersweb/constants/colors.dart';
 import 'package:flutter_application_breedersweb/constants/images.dart';
 import 'package:flutter_application_breedersweb/navigator.dart';
+import 'package:flutter_application_breedersweb/provider/home_provider.dart';
 import 'package:flutter_application_breedersweb/view/auth/login.dart';
 import 'package:flutter_application_breedersweb/view/cow_detail.dart';
 import 'package:flutter_application_breedersweb/view/drawer/analytics/analytics.dart';
 import 'package:flutter_application_breedersweb/view/drawer/new_users.dart';
 import 'package:flutter_application_breedersweb/view/drawer/statics.dart';
 import 'package:flutter_application_breedersweb/view/widget/request_tile.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class Home extends StatefulWidget {
@@ -18,14 +20,17 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<Map<String, String>> herds = [
-    {'name': 'Sunny Ranch', 'location': 'California', 'headScore': '50'},
-    {'name': 'Blue Meadows', 'location': 'Texas', 'headScore': '30'},
-    {'name': 'Golden Field', 'location': 'Nevada', 'headScore': '40'},
-  ];
+    @override
+  void initState() {
+    super.initState();
+    // Fetch herds when the widget initializes
+    context.read<HomeProvider>().fetchHerds();
+  }
+
 
   @override
   Widget build(BuildContext context) {
+     final herds = context.watch<HomeProvider>().herds;
     return Scaffold(
  
       body: Row(
@@ -93,7 +98,6 @@ class _HomeState extends State<Home> {
               ],
             ),
           ),
-          // Main Content
           Expanded(
             child: SingleChildScrollView(
               child: Padding(
@@ -140,7 +144,7 @@ class _HomeState extends State<Home> {
                                             child: ListTile(
                                               onTap: () {
                                                 AppCustomNavigator.push(context,
-                                                    HerdDetailPage(herd: herd));
+                                                    HerdDetailPage(herd: herd['id']));
                                               },
                                               trailing: Text(
                                                 '${herd['headScore']} Head',
@@ -178,49 +182,78 @@ class _HomeState extends State<Home> {
                         ),
                        
                         SizedBox(width: 2.w),
-                        Expanded(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 700),
-                            child: Container(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'New Users Request',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .headlineSmall!
-                                        .copyWith(
-                                          fontSize: 6.sp,
-                                        ),
-                                  ),
-                                  Container(
-                                    padding: EdgeInsets.symmetric(
-                                        horizontal: 8.0, vertical: 4.0),
-                                    decoration: BoxDecoration(
-                                      color: Colors.white,
-                                      border: Border.all(color: AppColors.grey),
-                                      borderRadius: BorderRadius.circular(10.0),
-                                    ),
-                                    child: Column(
-                                      children: [
-                                        for (int i = 0; i <= 6; i++)
-                                          AcceptRejectListTile(
-                                            name: 'umer@gmail.com',
-                                            onAccept: () {
-                                              print('Accepted John Doe');
-                                            },
-                                            onReject: () {
-                                              print('Rejected John Doe');
-                                            },
-                                          ),
-                                      ],
-                                    ),
-                                  )
-                                ],
+                          Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'User Requests',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall!
+                                    .copyWith(fontSize: 6.sp),
                               ),
-                            ),
+                              StreamBuilder<List<Map<String, dynamic>>>(
+                                stream: context
+                                    .read<HomeProvider>()
+                                    .pendingRequestsStream,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                      ConnectionState.waiting) {
+                                    return  Center(
+                                        child: Container());
+                                  } else if (snapshot.hasError) {
+                                    return  Center(
+                                        child: Text('Error loading requests',style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall!
+                                    .copyWith(fontSize: 4.sp),
+                              ));
+                                  } else if (!snapshot.hasData ||
+                                      snapshot.data!.isEmpty) {
+                                    return  Center(
+                                        child: Text('No pending requests',style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall!
+                                    .copyWith(fontSize: 4.sp),
+                              ));
+                                  }
+
+                                  final requests = snapshot.data!;
+                                  return ListView.builder(
+                                    shrinkWrap: true,
+                                    itemCount: requests.length,
+                                    itemBuilder: (context, index) {
+                                      final request = requests[index];
+                                      return AcceptRejectListTile(
+                                        name: request['email'] ?? 'Unknown',
+                                        onAccept: () async {
+                                          await context
+                                              .read<HomeProvider>()
+                                              .updateStatus(
+                                                  request['id'], 'accepted');
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                                  content: Text(
+                                                      'Request Accepted')));
+                                        },
+                                        onReject: () async {
+                                          await context
+                                              .read<HomeProvider>()
+                                              .updateStatus(
+                                                  request['id'], 'rejected');
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                                  content: Text(
+                                                      'Request Rejected')));
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                           
+                            ],
                           ),
                         ),
                       ],

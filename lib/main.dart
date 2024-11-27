@@ -1,5 +1,9 @@
 import 'package:flutter_application_breedersweb/constants/colors.dart';
+import 'package:flutter_application_breedersweb/provider/auth_provider.dart';
+import 'package:flutter_application_breedersweb/provider/herd_detail_provider.dart';
+import 'package:flutter_application_breedersweb/provider/home_provider.dart';
 import 'package:flutter_application_breedersweb/provider/splash_provider.dart';
+import 'package:flutter_application_breedersweb/provider/user_herd_provider.dart';
 import 'package:flutter_application_breedersweb/splash.dart';
 import 'package:flutter_application_breedersweb/view/auth/login.dart';
 import 'package:flutter_application_breedersweb/view/home.dart';
@@ -11,8 +15,16 @@ import 'package:firebase_core/firebase_core.dart';
 
 
 void main() async {
-  // WidgetsFlutterBinding.ensureInitialized();
-  // await Firebase.initializeApp();
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: "AIzaSyDkmMy5jXAxWyLiQlnZ997GW2wRnSxAagM",
+      appId: "1:904534866902:web:16b783650ffd185205c277",
+      messagingSenderId: "904534866902",
+      projectId: "breedex-8ce46",
+      )
+
+  );
   runApp(const MyApp());
 }
 
@@ -25,6 +37,10 @@ class MyApp extends StatelessWidget {
       return MultiProvider(
           providers: [
             ChangeNotifierProvider(create: (context) => LoadingProvider()),
+            ChangeNotifierProvider(create: (context) => AuthProvider()),
+            ChangeNotifierProvider(create: (_) => HomeProvider()),
+            ChangeNotifierProvider(create: (_) => HerdDetailProvider()),
+            ChangeNotifierProvider(create: (_) => UserHerdProvider()),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
@@ -71,8 +87,8 @@ class MyApp extends StatelessWidget {
               colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
               useMaterial3: true,
             ),
-            home:SplashScreen(),
-          //home: Home(),
+           // home:SplashScreen(),
+          home: Home(),
           ));
     });
   }

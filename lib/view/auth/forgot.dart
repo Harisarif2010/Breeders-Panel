@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_breedersweb/constants/colors.dart';
 import 'package:flutter_application_breedersweb/navigator.dart';
+import 'package:flutter_application_breedersweb/provider/auth_provider.dart';
+import 'package:flutter_application_breedersweb/provider/splash_provider.dart';
 import 'package:flutter_application_breedersweb/view/auth/login.dart';
 import 'package:flutter_application_breedersweb/view/widget/custom_button.dart';
 import 'package:flutter_application_breedersweb/view/widget/textfield.dart';
+import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class ForgotScreen extends StatefulWidget {
@@ -14,6 +17,8 @@ class ForgotScreen extends StatefulWidget {
 }
 
 class _ForgotScreenState extends State<ForgotScreen> {
+    final TextEditingController _emailController = TextEditingController();
+
   bool obsecurePassword = true;
   
   @override
@@ -63,26 +68,39 @@ class _ForgotScreenState extends State<ForgotScreen> {
                             ),
                   ),
                     SizedBox(height: 1.h),
-                  const CustomTextField(      
+                   CustomTextField(      
+                    controller: _emailController,
                     name: 'email',
                     hintText: 'Your email',
                     fillColor: AppColors.white, enableBorder: true,
                   ),
                  
                   SizedBox(height: 3.h),
-                
-                  Center(
-                    child: CustomButton(
-                        height: 8.h,
-                          width: 10.w,
-                          textStyle: TextStyle(fontSize: 3.sp,color: AppColors.white),
-                      text: 'Send Code',
-                      onTap: () {
-                      //  AppCustomNavigator.push(context, OtpScreen());
-                      },
-                    ),
-                  ),
-                  
+        
+                     Center(
+                       child: Consumer<LoadingProvider>(
+                                         builder: (context, loadingProvider, child) {
+                                           return loadingProvider.isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : CustomButton(
+                                height: 8.h,
+                            width: 10.w,
+                             textStyle:
+                            TextStyle(fontSize: 3.sp, color: AppColors.white),
+                              text: 'Send Code',
+                              onTap: () async {
+                                final loadingProvider = Provider.of<LoadingProvider>(context, listen: false);
+                                loadingProvider.setLoading(true);
+                                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                                await authProvider.sendPasswordResetEmail(context, _emailController.text);
+                                loadingProvider.setLoading(false);
+                                Future.delayed( Duration(seconds: 3), () { AppCustomNavigator.replace(context, const LoginScreen());});
+                                 
+                              },
+                            );
+                                         },
+                                       ),
+                     ),
                    SizedBox(height: 42.h),
                   Align(
                     alignment: Alignment.bottomCenter,
