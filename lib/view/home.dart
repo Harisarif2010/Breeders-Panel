@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_application_breedersweb/constants/colors.dart';
 import 'package:flutter_application_breedersweb/constants/images.dart';
 import 'package:flutter_application_breedersweb/navigator.dart';
+import 'package:flutter_application_breedersweb/provider/auth_provider.dart';
 import 'package:flutter_application_breedersweb/provider/home_provider.dart';
 import 'package:flutter_application_breedersweb/view/auth/login.dart';
 import 'package:flutter_application_breedersweb/view/cow_detail.dart';
@@ -9,8 +11,12 @@ import 'package:flutter_application_breedersweb/view/drawer/analytics/analytics.
 import 'package:flutter_application_breedersweb/view/drawer/new_users.dart';
 import 'package:flutter_application_breedersweb/view/drawer/statics.dart';
 import 'package:flutter_application_breedersweb/view/widget/request_tile.dart';
+import 'package:pdf/pdf.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
+
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -23,9 +29,36 @@ class _HomeState extends State<Home> {
     @override
   void initState() {
     super.initState();
-    // Fetch herds when the widget initializes
     context.read<HomeProvider>().fetchHerds();
   }
+Future<void> generateHerdPdf(Map<String, dynamic> herdData) async {
+  final pdf = pw.Document();
+  final image = pw.MemoryImage(
+    (await rootBundle.load(AppImages.logo)).buffer.asUint8List(), 
+  );
+  
+  pdf.addPage(
+    pw.Page(
+      build: (pw.Context context) {
+        return pw.Center(
+       child:  pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.center,
+          children: [
+            pw.Image(image, width: 100, height: 100),
+            pw.Text('Herd Details', style: pw.TextStyle(fontSize: 24)),
+            pw.SizedBox(height: 10),
+            pw.Text('Ranch: ${herdData['name']}'),
+            pw.Text('Location: ${herdData['location']}'),
+            pw.Text('Head Score: ${herdData['headScore']} Head'),
+          ],
+        ));
+      },
+    ),
+  );
+  await Printing.layoutPdf(onLayout: (pw.PdfPageFormat format) async {
+    return pdf.save();
+  });
+}
 
 
   @override
@@ -91,8 +124,10 @@ class _HomeState extends State<Home> {
                   title: Text('Logout',style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                 fontSize: 4.sp,
               ),),
-                  onTap: () {
+                  onTap: () async{
+                    await Provider.of<AuthProvider>(context, listen: false).signOut(context);
                     AppCustomNavigator.replace(context, const LoginScreen());
+
                   },
                 ),
               ],
@@ -146,13 +181,21 @@ class _HomeState extends State<Home> {
                                                 AppCustomNavigator.push(context,
                                                     HerdDetailPage(herd: herd['id']));
                                               },
-                                              trailing: Text(
-                                                '${herd['headScore']} Head',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyMedium!
-                                                    .copyWith(fontSize: 2.sp),
+                                              trailing: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                             IconButton(
+                                             icon: Icon(Icons.picture_as_pdf),
+                                               onPressed: () {
+                                              generateHerdPdf(herd); 
+                                                 },
                                               ),
+                                             Text(
+                                           '${herd['headScore']} Head',
+                                           style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontSize: 2.sp),
+                                                ),
+                                              ],
+                                             ),
                                               title: Text(
                                                 "Ranch: ${herd['name']}",
                                                 style: Theme.of(context)

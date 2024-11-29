@@ -233,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       body: Center(
         child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: 500), // Limit the width for web view
+          constraints: BoxConstraints(maxWidth: 500),
           child: SingleChildScrollView(
             child: Padding(
               padding: EdgeInsets.symmetric(vertical: 5.h, horizontal: 3.w),
@@ -388,6 +388,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             await authProvider.signInWithGoogle(context);
                             if (authProvider.user != null) {
                               AppCustomNavigator.replace(context, const Home());
+                              loadingProvider.setLoading(false);
                             }
                           } finally {
                             loadingProvider.setLoading(false);

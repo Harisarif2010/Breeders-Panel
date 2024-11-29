@@ -69,6 +69,7 @@ class _StaticsState extends State<Statics> {
           },
           icon: const Icon(Icons.arrow_back_ios_new),
         ),
+        centerTitle: true,
         title: Text(
           'Statics',
           style: Theme.of(context).textTheme.headlineLarge!.copyWith(

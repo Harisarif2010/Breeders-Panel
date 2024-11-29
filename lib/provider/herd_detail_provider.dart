@@ -59,4 +59,15 @@ class ScoringEntry {
     required this.timeOfCalved,
     required this.cowid,
   });
+    Map<String, dynamic> toMap() {
+    return {
+      'cowid': cowid,
+      'name': name,
+      'dob': dob,
+      'sire': sire,
+      'dam': dam,
+      'finalScore': finalScore,
+      'timeOfCalved': timeOfCalved,
+    };
+  }
 }
