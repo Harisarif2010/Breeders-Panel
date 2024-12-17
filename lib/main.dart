@@ -87,8 +87,8 @@ class MyApp extends StatelessWidget {
               colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primary),
               useMaterial3: true,
             ),
-            home:SplashScreen(),
-         // home: Home(),
+            //home:SplashScreen(),
+            home: Home(),
           ));
     });
   }

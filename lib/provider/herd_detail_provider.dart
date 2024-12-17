@@ -29,6 +29,16 @@ class HerdDetailProvider extends ChangeNotifier {
           finalScore: int.tryParse(data['finalScore']?.toString() ?? '0') ?? 0,
           timeOfCalved: data['timeOfCalved'] ?? '',
           cowid: data['cowid'] ?? '',
+          quiz1Details: data['quiz1Detail'] ?? {},
+          quiz1Score: data['quiz1Score'] ?? '0',
+          quiz2Details: data['quiz2Details'] ?? {},
+          quiz2Score: data['quiz2Score'] ?? '0',
+          quiz3Details: data['quiz3Details'] ?? {},
+          quiz3Score: data['quiz3Score'] ?? '0',
+          quiz4Details: data['quiz4Details'] ?? {},
+          quiz4Score: data['quiz4Score'] ?? '0',
+          quiz5Details: data['quiz5Details'] ?? {},
+          quiz5Score: data['quiz5Score'] ?? '0',
         );
       }).toList();
     } catch (e) {
@@ -48,6 +58,16 @@ class ScoringEntry {
   final String dam;
   final int finalScore;
   final String timeOfCalved;
+  final Map<String, dynamic> quiz1Details;
+  final String quiz1Score;
+  final Map<String, dynamic> quiz2Details;
+  final String quiz2Score;
+  final Map<String, dynamic> quiz3Details;
+  final String quiz3Score;
+  final Map<String, dynamic> quiz4Details;
+  final String quiz4Score;
+  final Map<String, dynamic> quiz5Details;
+  final String quiz5Score;
 
   ScoringEntry({
     required this.scoringEntry,
@@ -58,8 +78,19 @@ class ScoringEntry {
     required this.finalScore,
     required this.timeOfCalved,
     required this.cowid,
+    required this.quiz1Details,
+    required this.quiz1Score,
+    required this.quiz2Details,
+    required this.quiz2Score,
+    required this.quiz3Details,
+    required this.quiz3Score,
+    required this.quiz4Details,
+    required this.quiz4Score,
+    required this.quiz5Details,
+    required this.quiz5Score,
   });
-    Map<String, dynamic> toMap() {
+
+  Map<String, dynamic> toMap() {
     return {
       'cowid': cowid,
       'name': name,
@@ -68,6 +99,16 @@ class ScoringEntry {
       'dam': dam,
       'finalScore': finalScore,
       'timeOfCalved': timeOfCalved,
+      'quiz1Details': quiz1Details,
+      'quiz1Score': quiz1Score,
+      'quiz2Details': quiz2Details,
+      'quiz2Score': quiz2Score,
+      'quiz3Details': quiz3Details,
+      'quiz3Score': quiz3Score,
+      'quiz4Details': quiz4Details,
+      'quiz4Score': quiz4Score,
+      'quiz5Details': quiz5Details,
+      'quiz5Score': quiz5Score,
     };
   }
 }
