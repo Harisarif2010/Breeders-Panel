@@ -200,6 +200,8 @@
 //   }
 // }
 
+// ignore_for_file: unused_local_variable, use_key_in_widget_constructors, prefer_const_constructors, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_breedersweb/constants/colors.dart';
 import 'package:flutter_application_breedersweb/constants/images.dart';

@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter_application_breedersweb/constants/colors.dart';
 import 'package:flutter_application_breedersweb/provider/auth_provider.dart';
 import 'package:flutter_application_breedersweb/provider/herd_detail_provider.dart';
@@ -88,7 +90,7 @@ class MyApp extends StatelessWidget {
               useMaterial3: true,
             ),
             //home:SplashScreen(),
-            home: Home(),
+           home: Home(),
           ));
     });
   }

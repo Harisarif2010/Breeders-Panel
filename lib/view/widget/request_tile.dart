@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors, use_super_parameters
+
 import 'package:flutter/material.dart';
 import 'package:flutter_application_breedersweb/constants/colors.dart';
 import 'package:flutter_application_breedersweb/view/widget/custom_button.dart';

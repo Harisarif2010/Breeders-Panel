@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously, prefer_const_constructors, sized_box_for_whitespace
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_application_breedersweb/constants/colors.dart';
@@ -11,12 +13,15 @@ import 'package:flutter_application_breedersweb/view/drawer/analytics/analytics.
 import 'package:flutter_application_breedersweb/view/drawer/new_users.dart';
 import 'package:flutter_application_breedersweb/view/drawer/statics.dart';
 import 'package:flutter_application_breedersweb/view/widget/request_tile.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart' as pw;
 import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
+import 'dart:io';
+import 'package:excel/excel.dart' hide Border;
+import 'package:path_provider/path_provider.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -31,6 +36,7 @@ class _HomeState extends State<Home> {
     super.initState();
     context.read<HomeProvider>().fetchHerds();
   }
+
 Future<void> generateHerdPdf(Map<String, dynamic> herdData) async {
   final pdf = pw.Document();
   final image = pw.MemoryImage(
@@ -58,6 +64,45 @@ Future<void> generateHerdPdf(Map<String, dynamic> herdData) async {
   await Printing.layoutPdf(onLayout: (pw.PdfPageFormat format) async {
     return pdf.save();
   });
+}
+
+
+
+Future<void> generateHerdExcel(Map<String, dynamic> herdData) async {
+  final excel = Excel.createExcel(); 
+  final sheetObject = excel['Sheet1']; 
+
+  // Define headers
+  List<String> headers = [
+    'Ranch',
+    'Location',
+    'Head Score',
+  ];
+
+  // Add headers to the first row
+ for (int i = 0; i < headers.length; i++) {
+    sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0)).value = TextCellValue(headers[i]);
+  }
+
+
+  sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 1)).value = TextCellValue(herdData['name']);
+  sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 1)).value = TextCellValue(herdData['location']);
+  sheetObject.cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 1)).value = TextCellValue(herdData['headScore'].toString());
+
+  // Save Excel file to device
+  String formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+  String filePath = '/storage/emulated/0/Download/herd_detail_export_$formattedDate.xlsx';
+
+  List<int>? fileBytes = excel.save();
+  if (fileBytes != null) {
+    File(filePath)
+      ..createSync(recursive: true)
+      ..writeAsBytesSync(fileBytes);
+    print('File saved at $filePath');
+
+    // Notify user
+   
+  }
 }
 
 
@@ -184,12 +229,66 @@ Future<void> generateHerdPdf(Map<String, dynamic> herdData) async {
                                               trailing: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                             IconButton(
-                                             icon: Icon(Icons.picture_as_pdf),
-                                               onPressed: () {
-                                              generateHerdPdf(herd); 
-                                                 },
-                                              ),
+                                              
+                                           IconButton(
+  icon: Icon(Icons.print),
+  onPressed: () {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(
+            'Export Options',
+            style: TextStyle(fontSize: 18), 
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min, 
+            children: [
+              Text(
+                'Would you like to download the data as a PDF or Excel file?',
+                style: TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); 
+                generateHerdPdf(herd); 
+                
+              },
+              child: Text(
+                'PDF',
+                style: TextStyle(fontSize: 14), 
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                generateHerdExcel(herd);
+               
+              },
+              child: Text(
+                'Excel',
+                style: TextStyle(fontSize: 14),
+              ),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); 
+              },
+              child: Text(
+                'Cancel',
+                style: TextStyle(fontSize: 14), // Adjust button font size
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  },
+),
+
                                              Text(
                                            '${herd['headScore']} Head',
                                            style: Theme.of(context).textTheme.bodyMedium!.copyWith(fontSize: 2.sp),

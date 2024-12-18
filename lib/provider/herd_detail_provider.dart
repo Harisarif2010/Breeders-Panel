@@ -21,6 +21,7 @@ class HerdDetailProvider extends ChangeNotifier {
       _scoringEntries = snapshot.docs.map((doc) {
         final data = doc.data();
         return ScoringEntry(
+          herdId: herdId,
           scoringEntry: data['scoringEntry'] ?? '',
           name: data['name'] ?? '',
           dob: data['dob'] ?? '',
@@ -51,6 +52,7 @@ class HerdDetailProvider extends ChangeNotifier {
 
 class ScoringEntry {
   final String scoringEntry;
+  final String herdId;
   final String name;
   final String cowid;
   final String dob;
@@ -71,6 +73,7 @@ class ScoringEntry {
 
   ScoringEntry({
     required this.scoringEntry,
+    required this.herdId,
     required this.name,
     required this.dob,
     required this.sire,
@@ -92,6 +95,7 @@ class ScoringEntry {
 
   Map<String, dynamic> toMap() {
     return {
+      'herdId': herdId, 
       'cowid': cowid,
       'name': name,
       'dob': dob,
